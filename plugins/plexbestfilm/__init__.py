@@ -26,7 +26,7 @@ from app.utils.http import RequestUtils
 lock = RLock()
 
 
-class BestFilmVersion(_PluginBase):
+class PlexBestFilm(_PluginBase):
     # 插件名称
     plugin_name = "Plex收藏洗版"
     # 插件描述
@@ -40,7 +40,7 @@ class BestFilmVersion(_PluginBase):
     # 作者主页
     author_url = "https://github.com/developer-wlj"
     # 插件配置项ID前缀
-    plugin_config_prefix = "bestfilmversion_"
+    plugin_config_prefix = "plexbestfil_"
     # 加载顺序
     plugin_order = 13
     # 可使用的用户级别
@@ -124,7 +124,7 @@ class BestFilmVersion(_PluginBase):
         if self._enabled and not self._webhook_enabled:
             if self._cron:
                 return [{
-                    "id": "BestFilmVersion",
+                    "id": "PlexBestFilm",
                     "name": "收藏洗版定时服务",
                     "trigger": CronTrigger.from_crontab(self._cron),
                     "func": self.sync,
@@ -132,7 +132,7 @@ class BestFilmVersion(_PluginBase):
                 }]
             return [
                 {
-                    "id": "BestFilmVersion",
+                    "id": "PlexBestFilm",
                     "name": "收藏洗版定时服务",
                     "trigger": "interval",
                     "func": self.sync,
@@ -439,7 +439,7 @@ class BestFilmVersion(_PluginBase):
                         item_info_resp = Emby().get_iteminfo(itemid=data.get('Id'))
                     else:
                         item_info_resp = self.plex_get_iteminfo(itemid=data.get('Id'))
-                    logger.debug(f'BestFilmVersion插件 item打印 {item_info_resp}')
+                    logger.debug(f'PlexBestFilm插件 item打印 {item_info_resp}')
                     if not item_info_resp:
                         continue
 
@@ -489,7 +489,7 @@ class BestFilmVersion(_PluginBase):
         users_url = "[HOST]Users?&apikey=[APIKEY]"
         users = self.get_users(Jellyfin().get_data(users_url))
         if not users:
-            logger.info(f"bestfilmversion/users_url: {users_url}")
+            logger.info(f"plexbestfilm/users_url: {users_url}")
             return []
         all_items = []
         for user in users:
@@ -551,10 +551,10 @@ class BestFilmVersion(_PluginBase):
             if resp:
                 return [data['Id'] for data in resp.json()]
             else:
-                logger.error(f"BestFilmVersion/Users 未获取到返回数据")
+                logger.error(f"PlexBestFilm/Users 未获取到返回数据")
                 return []
         except Exception as e:
-            logger.error(f"连接BestFilmVersion/Users 出错：" + str(e))
+            logger.error(f"连接PlexBestFilm/Users 出错：" + str(e))
             return []
 
     @staticmethod
@@ -608,7 +608,7 @@ class BestFilmVersion(_PluginBase):
                         continue
 
                     id_list = [h.get('id') for h in _guid if h.get('id').__contains__("tmdb")]
-                    logger.debug(f'BestFilmVersion插件  id_list打印 {id_list}')
+                    logger.debug(f'PlexBestFilm插件  id_list打印 {id_list}')
                     if not id_list:
                         continue
 
@@ -640,7 +640,7 @@ class BestFilmVersion(_PluginBase):
             return
         if data.channel == 'jellyfin' and data.save_reason != 'UpdateUserRating':
             return
-        logger.info(f'BestFilmVersion/webhook_message_action WebhookEventInfo打印：{data}')
+        logger.info(f'PlexBestFilm/webhook_message_action WebhookEventInfo打印：{data}')
 
         # 获取锁
         _is_lock: bool = lock.acquire(timeout=60)
@@ -657,7 +657,7 @@ class BestFilmVersion(_PluginBase):
                     info = Emby().get_iteminfo(itemid=data.item_id)
                 elif data.channel == 'plex' and data.event == 'item.rate':
                     info = Plex().get_iteminfo(itemid=data.item_id)
-                logger.debug(f'BestFilmVersion/webhook_message_action item打印：{info}')
+                logger.debug(f'PlexBestFilm/webhook_message_action item打印：{info}')
                 if not info:
                     return
                 if info.item_type not in ['Movie', 'MOV', 'movie']:
